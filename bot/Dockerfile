@@ -1,11 +1,9 @@
-FROM golang:1.21
+FROM golang:1.24.1
 
 WORKDIR /bot
 
-COPY go.mod go.sum ./
+COPY ./bot/go.mod ./bot/go.sum ./
 
 RUN go mod download
 
 COPY . .
-
-CMD ["go", "run", "cmd/main.go"]
