@@ -1,8 +1,8 @@
 FROM golang:1.24.1
 
-WORKDIR /bot
+WORKDIR /app
 
-COPY ./bot/go.mod ./bot/go.sum ./
+COPY ./app/go.mod ./app/go.sum ./
 
 RUN go mod download
 

@@ -19,17 +19,24 @@ services:
     environment:
       MM_SQLSETTINGS_DRIVERNAME: postgres
       MM_SQLSETTINGS_DATASOURCE: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable&connect_timeout=10"
+      MM_SERVICESETTINGS_SITEURL: "http://mattermost:8065"
     volumes:
       - mattermost-data:/mattermost/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8065/api/v4/system/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
   
   bot:
     build:
       context: .
-      dockerfile: bot/Dockerfile
+      dockerfile: app/Dockerfile
     depends_on:
-      - mattermost
+      mattermost:
+        condition: service_healthy
     command: >
-      sh -c "cd bot; go run cmd/main.go"
+      sh -c "cd app; go run cmd/main.go"
 
 volumes:
   postgres-data:
