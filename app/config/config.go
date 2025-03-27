@@ -15,7 +15,7 @@ type Config struct {
 }
 
 func LoadConfig() (Config, error) {
-	viper.SetConfigFile("envs/.bot.env")
+	viper.SetConfigFile("envs/.env")
 	err := viper.ReadInConfig()
 	if err != nil {
 		return Config{}, fmt.Errorf("ошибка при чтении .env файла: %w", err)
