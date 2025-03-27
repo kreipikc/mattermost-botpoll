@@ -22,11 +22,11 @@ func LoadConfig() (Config, error) {
 	}
 
 	config := Config{
-		MattermostServerIp:     viper.Get("MATTERMOST_SERVER_IP").(string),
-		MattermostServerPort:   viper.Get("MATTERMOST_SERVER_PORT").(string),
-		MattermostToken:        viper.Get("MATTERMOST_TOKEN").(string),
-		MattermostSeverBaseUrl: fmt.Sprintf("http://%s:%s/api/v4", viper.Get("MATTERMOST_SERVER_IP").(string), viper.Get("MATTERMOST_SERVER_PORT").(string)),
-		MattermostServerWsUrl:  fmt.Sprintf("ws://%s:%s/api/v4/websocket", viper.Get("MATTERMOST_SERVER_IP").(string), viper.Get("MATTERMOST_SERVER_PORT").(string)),
+		MattermostServerIp:     viper.GetString("MATTERMOST_SERVER_IP"),
+		MattermostServerPort:   viper.GetString("MATTERMOST_SERVER_PORT"),
+		MattermostToken:        viper.GetString("MATTERMOST_TOKEN"),
+		MattermostSeverBaseUrl: fmt.Sprintf("http://%s:%s/api/v4", viper.GetString("MATTERMOST_SERVER_IP"), viper.GetString("MATTERMOST_SERVER_PORT")),
+		MattermostServerWsUrl:  fmt.Sprintf("ws://%s:%s/api/v4/websocket", viper.GetString("MATTERMOST_SERVER_IP"), viper.GetString("MATTERMOST_SERVER_PORT")),
 	}
 
 	if config.MattermostServerIp == "" {
