@@ -15,7 +15,7 @@ func CreatePoll(baseURL string, token string, post *models.Post) error {
 		return fmt.Errorf("ошибка при валидации команды: %v", err)
 	}
 
-	message := fmt.Sprintf("Опрос:\nTitle: %s\nDescription: %s\nDate end: %s\nVariants: %s", poll.Title, poll.Description, poll.DateEnd, poll.Variants)
+	message := fmt.Sprintf("Опрос:\nTitle: %s\nDescription: %s\nDate end: %s\nVariants: %v", poll.Title, poll.Description, poll.DateEnd, poll.Variants)
 
 	err = utils.SendResponse(baseURL, token, post, message)
 	if err != nil {
@@ -48,14 +48,15 @@ func parsePollString(pollString string) (*models.PollBody, error) {
 	}
 
 	variantsList := strings.Split(variants, ",")
-	for i := range variantsList {
-		variantsList[i] = strings.TrimSpace(variantsList[i])
+	variantsMap := make(map[string]int)
+	for _, zn := range variantsList {
+		variantsMap[strings.TrimSpace(zn)] = 0
 	}
 
 	return &models.PollBody{
 		Title:       title,
 		Description: description,
-		Variants:    variantsList,
+		Variants:    variantsMap,
 		DateEnd:     dateEnd,
 	}, nil
 }

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"mattermost-botpoll/bot"
 	"mattermost-botpoll/config"
 )
@@ -9,8 +9,7 @@ import (
 func main() {
 	configSetting, err := config.LoadConfig()
 	if err != nil {
-		fmt.Println("Ошибка при получении настроек:", err)
-		return
+		log.Fatalf("Ошибка при получении настроек: %v", err)
 	}
 
 	wsConn, botUserID := bot.InitConnection(configSetting)

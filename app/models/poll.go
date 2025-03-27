@@ -5,6 +5,6 @@ import "time"
 type PollBody struct {
 	Title       string
 	Description string
-	Variants    []string
+	Variants    map[string]int
 	DateEnd     time.Time
 }
