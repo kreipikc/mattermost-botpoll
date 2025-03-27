@@ -2,10 +2,12 @@ package bot
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"mattermost-botpoll/commands"
 	"mattermost-botpoll/config"
 	"mattermost-botpoll/models"
+	"mattermost-botpoll/utils"
 	"strings"
 
 	"github.com/gorilla/websocket"
@@ -40,9 +42,15 @@ func ListenEvent(wsConn *websocket.Conn, botUserID string, config config.Config)
 
 func handlePost(baseURL, token string, post *models.Post) {
 	if post.Message == "!hello" {
-		commands.Hello(baseURL, token, post)
+		err := commands.Hello(baseURL, token, post)
+		if err != nil {
+			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !hello: %v", err))
+		}
 	}
 	if strings.HasPrefix(post.Message, "!poll") {
-		commands.CreatePoll(baseURL, token, post)
+		err := commands.CreatePoll(baseURL, token, post)
+		if err != nil {
+			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !poll: %v", err))
+		}
 	}
 }
