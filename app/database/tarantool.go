@@ -127,65 +127,10 @@ func (db *DB) CreatePoll(poll *models.PollBody) (uint32, error) {
 	return generatedID, nil
 }
 
-// Методы ниже протестировать и отредактировать при надобности
 func (db *DB) GetPollByID(id uint32) (*models.PollBody, error) {
-	req := tarantool.NewSelectRequest("polls").
-		Index("primary").
-		Limit(1).
-		Iterator(tarantool.IterEq).
-		Key([]interface{}{id})
-
-	resp, err := db.Conn.Do(req).Get()
-	if err != nil {
-		return nil, err
-	}
-
-	if len(resp) == 0 {
-		return nil, nil
-	}
-
-	tuple := resp[0].([]interface{})
-	variants := make(map[string]int)
-	for key, value := range tuple[4].(map[interface{}]interface{}) {
-		variants[key.(string)] = int(value.(float64))
-	}
-
-	dateEnd, err := time.Parse(time.RFC3339, tuple[5].(string))
-	if err != nil {
-		return nil, err
-	}
-
-	poll := &models.PollBody{
-		Id:          tuple[0].(uint32),
-		AuthorID:    tuple[1].(string),
-		Title:       tuple[2].(string),
-		Description: tuple[3].(string),
-		Variants:    variants,
-		DateEnd:     dateEnd,
-	}
-	return poll, nil
+	return &models.PollBody{}, nil
 }
 
-func (db *DB) UpdatePoll(poll *models.PollBody) error {
-	req := tarantool.NewUpdateRequest("polls").
-		Index("primary").
-		Key([]interface{}{poll.Id}).
-		Operations(tarantool.NewOperations().
-			Assign(1, poll.AuthorID).
-			Assign(2, poll.Title).
-			Assign(3, poll.Description).
-			Assign(4, poll.Variants).
-			Assign(5, poll.DateEnd.Format(time.RFC3339)))
-
-	_, err := db.Conn.Do(req).Get()
-	return err
-}
-
-func (db *DB) DeletePoll(idPoll uint32) error {
-	req := tarantool.NewDeleteRequest("polls").
-		Index("primary").
-		Key([]interface{}{idPoll})
-
-	_, err := db.Conn.Do(req).Get()
-	return err
+func (db *DB) UpdatePollVote(idPoll uint32, variant string) error {
+	return nil
 }

@@ -45,10 +45,6 @@ func parsePollString(pollString string) (*models.PollBody, error) {
 	dateEndStr := strings.TrimSpace(match[3])
 	variants := strings.TrimSpace(match[4])
 
-	if title == "" || description == "" || dateEndStr == "" || variants == "" {
-		return nil, fmt.Errorf("одно или несколько полей отсутствуют")
-	}
-
 	dateEnd, err := time.Parse("02.01.2006", dateEndStr)
 	if err != nil {
 		return nil, fmt.Errorf("дата конца не соответствует формату dd.mm.yyyy")

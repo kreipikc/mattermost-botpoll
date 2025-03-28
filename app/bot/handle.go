@@ -56,4 +56,21 @@ func handlePost(dbConn *database.DB, baseURL, token string, post *models.Post) {
 			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !poll: %v", err))
 		}
 	}
+	if strings.HasPrefix(post.Message, "!vote_poll") {
+		err := commands.PollVote(dbConn, baseURL, token, post)
+		if err != nil {
+			fmt.Printf("Ошибка при обработки команды !vote_poll: %v\n", err)
+			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !vote_poll: %v", err))
+		}
+		utils.SendResponse(baseURL, token, post, "Vote success")
+	}
+	if strings.HasPrefix(post.Message, "!info_poll") {
+		poll, err := commands.GetInfo(dbConn, baseURL, token, post)
+		if err != nil {
+			fmt.Printf("Ошибка при обработки команды !info_poll: %v\n", err)
+			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !info_poll: %v", err))
+		}
+		message := fmt.Sprintf("Опрос:\nId: %d\nTitle: %s\nDescription: %s\nDate end: %s\nVariants: %v\nAuthorID: %s", poll.Id, poll.Title, poll.Description, poll.DateEnd, poll.Variants, poll.AuthorID)
+		utils.SendResponse(baseURL, token, post, message)
+	}
 }
