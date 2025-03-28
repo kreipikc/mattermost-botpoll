@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"mattermost-botpoll/database"
 	"mattermost-botpoll/models"
 	"mattermost-botpoll/utils"
 	"regexp"
@@ -9,7 +10,7 @@ import (
 	"time"
 )
 
-func CreatePoll(baseURL string, token string, post *models.Post) error {
+func CreatePoll(dbConn *database.DB, baseURL string, token string, post *models.Post) error {
 	poll, err := parsePollString(post.Message)
 	if err != nil {
 		return fmt.Errorf("ошибка при валидации команды: %v", err)

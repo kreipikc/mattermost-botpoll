@@ -12,22 +12,22 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func InitConnection(config config.Config) (*websocket.Conn, string) {
-	user, err := getMe(config.MattermostSeverBaseUrl, config.MattermostToken)
+func InitConnection(config *config.Config) (*websocket.Conn, string) {
+	user, err := getMe(config.MattermostConf.MattermostSeverBaseUrl, config.MattermostConf.MattermostToken)
 	if err != nil {
 		log.Fatalf("Ошибка получения пользователя: %v", err)
 	}
 	botUserID := user.Id
 	log.Printf("Бот запущен, ID: %s", botUserID)
 
-	log.Printf("Попытка подключения к WebSocket: %s", config.MattermostServerWsUrl)
+	log.Printf("Попытка подключения к WebSocket: %s", config.MattermostConf.MattermostServerWsUrl)
 
 	dialer := websocket.DefaultDialer
 	header := map[string][]string{
-		"Authorization": {"Bearer " + config.MattermostToken},
+		"Authorization": {"Bearer " + config.MattermostConf.MattermostToken},
 	}
 
-	wsConn, _, err := dialer.Dial(config.MattermostServerWsUrl, header)
+	wsConn, _, err := dialer.Dial(config.MattermostConf.MattermostServerWsUrl, header)
 	if err != nil {
 		log.Fatalf("Ошибка подключения к WebSocket: %v", err)
 	}
@@ -38,7 +38,7 @@ func InitConnection(config config.Config) (*websocket.Conn, string) {
 		"seq":    1,
 		"action": "authentication_challenge",
 		"data": map[string]string{
-			"token": config.MattermostToken,
+			"token": config.MattermostConf.MattermostToken,
 		},
 	}
 	err = wsConn.WriteJSON(authMessage)

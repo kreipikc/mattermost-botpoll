@@ -6,6 +6,7 @@ import (
 	"log"
 	"mattermost-botpoll/commands"
 	"mattermost-botpoll/config"
+	"mattermost-botpoll/database"
 	"mattermost-botpoll/models"
 	"mattermost-botpoll/utils"
 	"strings"
@@ -13,7 +14,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func ListenEvent(wsConn *websocket.Conn, botUserID string, config config.Config) {
+func ListenEvent(wsConn *websocket.Conn, dbConn *database.DB, botUserID string, config *config.Config) {
 	defer wsConn.Close()
 
 	for {
@@ -34,13 +35,13 @@ func ListenEvent(wsConn *websocket.Conn, botUserID string, config config.Config)
 				continue
 			}
 			if post.UserId != botUserID {
-				handlePost(config.MattermostSeverBaseUrl, config.MattermostToken, &post)
+				handlePost(dbConn, config.MattermostConf.MattermostSeverBaseUrl, config.MattermostConf.MattermostToken, &post)
 			}
 		}
 	}
 }
 
-func handlePost(baseURL, token string, post *models.Post) {
+func handlePost(dbConn *database.DB, baseURL, token string, post *models.Post) {
 	if post.Message == "!hello" {
 		err := commands.Hello(baseURL, token, post)
 		if err != nil {
@@ -48,7 +49,7 @@ func handlePost(baseURL, token string, post *models.Post) {
 		}
 	}
 	if strings.HasPrefix(post.Message, "!poll") {
-		err := commands.CreatePoll(baseURL, token, post)
+		err := commands.CreatePoll(dbConn, baseURL, token, post)
 		if err != nil {
 			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !poll: %v", err))
 		}
