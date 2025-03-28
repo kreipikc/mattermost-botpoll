@@ -45,12 +45,14 @@ func handlePost(dbConn *database.DB, baseURL, token string, post *models.Post) {
 	if post.Message == "!hello" {
 		err := commands.Hello(baseURL, token, post)
 		if err != nil {
+			fmt.Printf("Ошибка при обработки команды !hello: %v\n", err)
 			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !hello: %v", err))
 		}
 	}
 	if strings.HasPrefix(post.Message, "!poll") {
 		err := commands.CreatePoll(dbConn, baseURL, token, post)
 		if err != nil {
+			fmt.Printf("Ошибка при обработки команды !poll: %v\n", err)
 			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !poll: %v", err))
 		}
 	}

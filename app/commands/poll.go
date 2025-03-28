@@ -15,8 +15,14 @@ func CreatePoll(dbConn *database.DB, baseURL string, token string, post *models.
 	if err != nil {
 		return fmt.Errorf("ошибка при валидации команды: %v", err)
 	}
+	poll.AuthorID = post.UserId
 
-	message := fmt.Sprintf("Опрос:\nTitle: %s\nDescription: %s\nDate end: %s\nVariants: %v", poll.Title, poll.Description, poll.DateEnd, poll.Variants)
+	idPoll, err := dbConn.CreatePoll(poll)
+	if err != nil {
+		return fmt.Errorf("ошибка при создании опроса в Tarantool: %v", err)
+	}
+
+	message := fmt.Sprintf("Опрос:\nId: %d\nTitle: %s\nDescription: %s\nDate end: %s\nVariants: %v\nAuthorID: %s", idPoll, poll.Title, poll.Description, poll.DateEnd, poll.Variants, poll.AuthorID)
 
 	err = utils.SendResponse(baseURL, token, post, message)
 	if err != nil {
