@@ -23,7 +23,7 @@ func GetInfo(dbConn *database.DB, baseURL string, token string, post *models.Pos
 	return poll, nil
 }
 
-func parseInfoPoll(message string) (uint32, error) {
+func parseInfoPoll(message string) (int, error) {
 	re := regexp.MustCompile(`!info_poll\s+(\d+)`)
 
 	matches := re.FindStringSubmatch(message)
@@ -32,10 +32,10 @@ func parseInfoPoll(message string) (uint32, error) {
 	}
 
 	idPollStr := matches[1]
-	idPoll, err := strconv.ParseUint(idPollStr, 10, 32)
+	idPoll, err := strconv.Atoi(idPollStr)
 	if err != nil {
-		return 0, fmt.Errorf("ошибка преобразования id_poll '%s' в uint32: %v", idPollStr, err)
+		return 0, fmt.Errorf("ошибка преобразования id_poll '%s' в int: %v", idPollStr, err)
 	}
 
-	return uint32(idPoll), nil
+	return idPoll, nil
 }

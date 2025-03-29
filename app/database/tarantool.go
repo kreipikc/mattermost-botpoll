@@ -6,6 +6,7 @@ import (
 	"log"
 	"mattermost-botpoll/config"
 	"mattermost-botpoll/models"
+	"mattermost-botpoll/utils"
 	"time"
 
 	"github.com/tarantool/go-tarantool/v2"
@@ -72,7 +73,11 @@ func (db *DB) InitSpaces() error {
 	return nil
 }
 
-func (db *DB) CreatePoll(poll *models.PollBody) (uint32, error) {
+func (db *DB) CreatePoll(poll *models.PollBody) (int, error) {
+	if (poll.DateEnd).Before(time.Now()) {
+		return 0, fmt.Errorf("время окончания голосования не может быть раньше завтрашнего дня")
+	}
+
 	req := tarantool.NewCallRequest("box.space.polls:auto_increment").
 		Args([]interface{}{
 			[]interface{}{
@@ -89,6 +94,8 @@ func (db *DB) CreatePoll(poll *models.PollBody) (uint32, error) {
 		return 0, err
 	}
 
+	log.Printf("Ответ от Tarantool при создании poll: %v", resp)
+
 	if len(resp) == 0 {
 		return 0, fmt.Errorf("не удалось создать опрос: пустой ответ от Tarantool")
 	}
@@ -98,28 +105,9 @@ func (db *DB) CreatePoll(poll *models.PollBody) (uint32, error) {
 		return 0, fmt.Errorf("неверный формат кортежа: ожидается 6 полей, получено %d", len(tuple))
 	}
 
-	var generatedID uint32
-	switch v := tuple[0].(type) {
-	case int8:
-		generatedID = uint32(v)
-	case int16:
-		generatedID = uint32(v)
-	case int32:
-		generatedID = uint32(v)
-	case int64:
-		generatedID = uint32(v)
-	case uint8:
-		generatedID = uint32(v)
-	case uint16:
-		generatedID = uint32(v)
-	case uint32:
-		generatedID = v
-	case uint64:
-		generatedID = uint32(v)
-	case float64:
-		generatedID = uint32(v)
-	default:
-		return 0, fmt.Errorf("неожиданный тип для Id: %T", v)
+	generatedID, err := utils.ConvertAllIntToInt(tuple[0])
+	if err != nil {
+		return 0, fmt.Errorf("ошибка при конвертации к int: %v", err)
 	}
 
 	poll.Id = generatedID
@@ -127,10 +115,118 @@ func (db *DB) CreatePoll(poll *models.PollBody) (uint32, error) {
 	return generatedID, nil
 }
 
-func (db *DB) GetPollByID(id uint32) (*models.PollBody, error) {
-	return &models.PollBody{}, nil
+func (db *DB) GetPollByID(id int) (*models.PollBody, error) {
+	req := tarantool.NewSelectRequest("polls").
+		Index("primary").
+		Limit(1).
+		Iterator(tarantool.IterEq).
+		Key([]interface{}{id})
+
+	resp, err := db.Conn.Do(req).Get()
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при выполнении SELECT: %w", err)
+	}
+
+	log.Printf("Ответ от Tarantool для id %d: %v", id, resp)
+
+	if len(resp) == 0 {
+		return nil, fmt.Errorf("опрос с ID %d не найден", id)
+	}
+
+	tuple, ok := resp[0].([]interface{})
+	if !ok || len(tuple) != 6 {
+		return nil, fmt.Errorf("неверный формат кортежа: ожидается 6 полей, получено %v", resp[0])
+	}
+
+	pollID, err := utils.ConvertAllIntToInt(tuple[0])
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при конвертации к int: %v", err)
+	}
+
+	authorID, ok := tuple[1].(string)
+	if !ok {
+		return nil, fmt.Errorf("неверный тип для author_id: %T", tuple[1])
+	}
+
+	title, ok := tuple[2].(string)
+	if !ok {
+		return nil, fmt.Errorf("неверный тип для title: %T", tuple[2])
+	}
+
+	description, ok := tuple[3].(string)
+	if !ok {
+		return nil, fmt.Errorf("неверный тип для description: %T", tuple[3])
+	}
+
+	variantsRaw, ok := tuple[4].(map[interface{}]interface{})
+	if !ok {
+		return nil, fmt.Errorf("неверный тип для variants: %T", tuple[4])
+	}
+
+	variants := make(map[string]int)
+	for key, value := range variantsRaw {
+		keyStr, ok := key.(string)
+		if !ok {
+			return nil, fmt.Errorf("неверный тип ключа в variants: %T", key)
+		}
+		valueInt, err := utils.ConvertAllIntToInt(value)
+		if err != nil {
+			return nil, fmt.Errorf("ошибка при конвертации к int: %v", err)
+		}
+		variants[keyStr] = int(valueInt)
+	}
+
+	dateEndStr, ok := tuple[5].(string)
+	if !ok {
+		return nil, fmt.Errorf("неверный тип для date_end: %T", tuple[5])
+	}
+	dateEnd, err := time.Parse(time.RFC3339, dateEndStr)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка парсинга date_end: %w", err)
+	}
+
+	poll := &models.PollBody{
+		Id:          pollID,
+		AuthorID:    authorID,
+		Title:       title,
+		Description: description,
+		Variants:    variants,
+		DateEnd:     dateEnd,
+	}
+
+	return poll, nil
 }
 
-func (db *DB) UpdatePollVote(idPoll uint32, variant string) error {
+func (db *DB) UpdatePollVote(idPoll int, variant string) error {
+	poll, err := db.GetPollByID(idPoll)
+	if err != nil {
+		return fmt.Errorf("ошибка получения опроса: %w", err)
+	}
+
+	if (poll.DateEnd).Before(time.Now()) {
+		return fmt.Errorf("голосование завершено")
+	}
+
+	if _, exists := poll.Variants[variant]; !exists {
+		return fmt.Errorf("вариант %s не найден в опросе с ID %d", variant, idPoll)
+	}
+
+	poll.Variants[variant]++
+
+	req := tarantool.NewUpdateRequest("polls").
+		Index("primary").
+		Key([]interface{}{idPoll}).
+		Operations(tarantool.NewOperations().Assign(4, poll.Variants))
+
+	resp, err := db.Conn.Do(req).Get()
+	if err != nil {
+		return fmt.Errorf("ошибка обновления опроса: %w", err)
+	}
+
+	if len(resp) == 0 {
+		return fmt.Errorf("не удалось обновить опрос: пустой ответ от Tarantool")
+	}
+
+	log.Printf("Успешно обновлён опрос с ID %d: вариант %s теперь имеет %d голосов", idPoll, variant, poll.Variants[variant])
 	return nil
 }

@@ -22,7 +22,7 @@ func PollVote(dbConn *database.DB, baseURL string, token string, post *models.Po
 	return nil
 }
 
-func parseVotePoll(command string) (uint32, string, error) {
+func parseVotePoll(command string) (int, string, error) {
 	re := regexp.MustCompile(`!vote_poll\s+(\d+)\s+(.+)`)
 
 	matches := re.FindStringSubmatch(command)
@@ -31,12 +31,12 @@ func parseVotePoll(command string) (uint32, string, error) {
 	}
 
 	idPollStr := strings.TrimSpace(matches[1])
-	idPoll, err := strconv.ParseUint(idPollStr, 10, 32)
+	idPoll, err := strconv.Atoi(idPollStr)
 	if err != nil {
-		return 0, "", fmt.Errorf("ошибка преобразования id_poll '%s' в uint32: %v", idPollStr, err)
+		return 0, "", fmt.Errorf("ошибка преобразования id_poll '%s' в int: %v", idPollStr, err)
 	}
 
 	variant := matches[2]
 
-	return uint32(idPoll), variant, nil
+	return idPoll, variant, nil
 }

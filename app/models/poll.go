@@ -3,7 +3,7 @@ package models
 import "time"
 
 type PollBody struct {
-	Id          uint32
+	Id          int
 	AuthorID    string
 	Title       string
 	Description string
