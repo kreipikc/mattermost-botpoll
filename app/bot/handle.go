@@ -24,7 +24,7 @@ func ListenEvent(wsConn *websocket.Conn, dbConn *database.DB, botUserID string, 
 			log.Printf("Ошибка чтения сообщения: %v", err)
 			break
 		}
-		log.Printf("Получено событие: %+v\n", event)
+		// log.Printf("Получено событие: %+v\n", event)
 
 		if event["event"] == "posted" {
 			postData := event["data"].(map[string]interface{})["post"]
@@ -42,24 +42,31 @@ func ListenEvent(wsConn *websocket.Conn, dbConn *database.DB, botUserID string, 
 }
 
 func handlePost(dbConn *database.DB, baseURL, token string, post *models.Post) {
-	if post.Message == "!hello" {
+	if strings.TrimSpace(post.Message) == "!hello" {
 		err := commands.Hello(baseURL, token, post)
 		if err != nil {
-			fmt.Printf("Ошибка при обработки команды !hello: %v\n", err)
+			log.Printf("Ошибка при обработки команды !hello: %v", err)
 			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !hello: %v", err))
+		}
+	}
+	if strings.TrimSpace(post.Message) == "!help" {
+		err := commands.HelpCommandPoll(baseURL, token, post)
+		if err != nil {
+			log.Printf("Ошибка при обработки команды !help: %v", err)
+			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !help: %v", err))
 		}
 	}
 	if strings.HasPrefix(post.Message, "!poll") {
 		err := commands.CreatePoll(dbConn, baseURL, token, post)
 		if err != nil {
-			fmt.Printf("Ошибка при обработки команды !poll: %v\n", err)
+			log.Printf("Ошибка при обработки команды !poll: %v", err)
 			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !poll: %v", err))
 		}
 	}
 	if strings.HasPrefix(post.Message, "!vote_poll") {
 		err := commands.PollVote(dbConn, baseURL, token, post)
 		if err != nil {
-			fmt.Printf("Ошибка при обработки команды !vote_poll: %v\n", err)
+			log.Printf("Ошибка при обработки команды !vote_poll: %v", err)
 			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !vote_poll: %v", err))
 			return
 		}
@@ -68,7 +75,7 @@ func handlePost(dbConn *database.DB, baseURL, token string, post *models.Post) {
 	if strings.HasPrefix(post.Message, "!info_poll") {
 		poll, err := commands.GetInfo(dbConn, baseURL, token, post)
 		if err != nil {
-			fmt.Printf("Ошибка при обработки команды !info_poll: %v\n", err)
+			log.Printf("Ошибка при обработки команды !info_poll: %v", err)
 			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !info_poll: %v", err))
 			return
 		}
@@ -78,7 +85,7 @@ func handlePost(dbConn *database.DB, baseURL, token string, post *models.Post) {
 	if strings.HasPrefix(post.Message, "!end_poll") {
 		err := commands.EndPoll(dbConn, baseURL, token, post)
 		if err != nil {
-			fmt.Printf("Ошибка при обработки команды !end_poll: %v\n", err)
+			log.Printf("Ошибка при обработки команды !end_poll: %v", err)
 			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !end_poll: %v", err))
 			return
 		}
@@ -87,7 +94,7 @@ func handlePost(dbConn *database.DB, baseURL, token string, post *models.Post) {
 	if strings.HasPrefix(post.Message, "!delete_poll") {
 		err := commands.DeletePoll(dbConn, baseURL, token, post)
 		if err != nil {
-			fmt.Printf("Ошибка при обработки команды !delete_poll: %v\n", err)
+			log.Printf("Ошибка при обработки команды !delete_poll: %v", err)
 			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !delete_poll: %v", err))
 			return
 		}

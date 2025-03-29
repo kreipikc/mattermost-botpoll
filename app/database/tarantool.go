@@ -94,7 +94,7 @@ func (db *DB) CreatePoll(poll *models.PollBody) (int, error) {
 		return 0, err
 	}
 
-	log.Printf("Ответ от Tarantool при создании poll: %v", resp)
+	// log.Printf("Ответ от Tarantool при создании poll: %v", resp)
 
 	if len(resp) == 0 {
 		return 0, fmt.Errorf("не удалось создать опрос: пустой ответ от Tarantool")
@@ -127,7 +127,7 @@ func (db *DB) GetPollByID(id int) (*models.PollBody, error) {
 		return nil, fmt.Errorf("ошибка при выполнении SELECT: %w", err)
 	}
 
-	log.Printf("Ответ от Tarantool для id %d: %v", id, resp)
+	// log.Printf("Ответ от Tarantool для id %d: %v", id, resp)
 
 	if len(resp) == 0 {
 		return nil, fmt.Errorf("опрос с ID %d не найден", id)
@@ -277,7 +277,7 @@ func (db *DB) DeletePoll(idPoll int, idAuthor string) error {
 		return fmt.Errorf("ошибка при выполнении DELETE: %w", err)
 	}
 
-	log.Printf("Ответ от Tarantool при удалении ID %d: %v", idPoll, resp)
+	// log.Printf("Ответ от Tarantool при удалении ID %d: %v", idPoll, resp)
 
 	if len(resp) == 0 {
 		return fmt.Errorf("опрос с ID %d не найден", idPoll)

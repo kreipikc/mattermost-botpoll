@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"log"
 	"mattermost-botpoll/database"
 	"mattermost-botpoll/models"
 	"regexp"
@@ -18,6 +19,9 @@ func DeletePoll(dbConn *database.DB, baseURL string, token string, post *models.
 	if err != nil {
 		return fmt.Errorf("ошибка при обновлении данных: %s", err)
 	}
+
+	log.Printf("Голосование ID: %d удалено успешно", idPoll)
+
 	return nil
 }
 

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"log"
 	"mattermost-botpoll/database"
 	"mattermost-botpoll/models"
 	"mattermost-botpoll/utils"
@@ -22,12 +23,15 @@ func CreatePoll(dbConn *database.DB, baseURL string, token string, post *models.
 		return fmt.Errorf("ошибка при создании опроса в Tarantool: %v", err)
 	}
 
+	log.Printf("Голосование ID: %d создано успешно", idPoll)
+
 	message := fmt.Sprintf("Опрос:\nId: %d\nTitle: %s\nDescription: %s\nDate end: %s\nVariants: %v\nAuthorID: %s", idPoll, poll.Title, poll.Description, poll.DateEnd, poll.Variants, poll.AuthorID)
 
 	err = utils.SendResponse(baseURL, token, post, message)
 	if err != nil {
 		return fmt.Errorf("ошибка формирования или отправки ответа: %s", err)
 	}
+
 	return nil
 }
 
@@ -37,7 +41,7 @@ func parsePollString(pollString string) (*models.PollBody, error) {
 	match := re.FindStringSubmatch(pollString)
 
 	if match == nil {
-		return nil, fmt.Errorf("строка не соответствует формату команды")
+		return nil, fmt.Errorf("неверный формат команды: ожидается '!poll <title> <description> <date_end> <variants: obj1, obj2...>'")
 	}
 
 	title := strings.TrimSpace(match[1])

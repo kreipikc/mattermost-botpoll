@@ -13,7 +13,6 @@ func GetInfo(dbConn *database.DB, baseURL string, token string, post *models.Pos
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при валидации данных: %s", err)
 	}
-	fmt.Println(idPoll)
 
 	poll, err := dbConn.GetPollByID(idPoll)
 	if err != nil {

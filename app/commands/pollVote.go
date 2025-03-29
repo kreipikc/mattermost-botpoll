@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"log"
 	"mattermost-botpoll/database"
 	"mattermost-botpoll/models"
 	"regexp"
@@ -19,6 +20,9 @@ func PollVote(dbConn *database.DB, baseURL string, token string, post *models.Po
 	if err != nil {
 		return fmt.Errorf("ошибка при обновлении данных в Tarantool: %s", err)
 	}
+
+	log.Printf("Голосование ID: %d обновлено успешно", id_poll)
+
 	return nil
 }
 
