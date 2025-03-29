@@ -61,6 +61,7 @@ func handlePost(dbConn *database.DB, baseURL, token string, post *models.Post) {
 		if err != nil {
 			fmt.Printf("Ошибка при обработки команды !vote_poll: %v\n", err)
 			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !vote_poll: %v", err))
+			return
 		}
 		utils.SendResponse(baseURL, token, post, "Vote success")
 	}
@@ -73,5 +74,23 @@ func handlePost(dbConn *database.DB, baseURL, token string, post *models.Post) {
 		}
 		message := fmt.Sprintf("Опрос:\nId: %d\nTitle: %s\nDescription: %s\nDate end: %s\nVariants: %v\nAuthorID: %s", poll.Id, poll.Title, poll.Description, poll.DateEnd, poll.Variants, poll.AuthorID)
 		utils.SendResponse(baseURL, token, post, message)
+	}
+	if strings.HasPrefix(post.Message, "!end_poll") {
+		err := commands.EndPoll(dbConn, baseURL, token, post)
+		if err != nil {
+			fmt.Printf("Ошибка при обработки команды !end_poll: %v\n", err)
+			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !end_poll: %v", err))
+			return
+		}
+		utils.SendResponse(baseURL, token, post, "Голосование звершено!")
+	}
+	if strings.HasPrefix(post.Message, "!delete_poll") {
+		err := commands.DeletePoll(dbConn, baseURL, token, post)
+		if err != nil {
+			fmt.Printf("Ошибка при обработки команды !delete_poll: %v\n", err)
+			utils.SendResponse(baseURL, token, post, fmt.Sprintf("Ошибка при обработки команды !delete_poll: %v", err))
+			return
+		}
+		utils.SendResponse(baseURL, token, post, "Голосование удалено!")
 	}
 }

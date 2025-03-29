@@ -230,3 +230,58 @@ func (db *DB) UpdatePollVote(idPoll int, variant string) error {
 	log.Printf("Успешно обновлён опрос с ID %d: вариант %s теперь имеет %d голосов", idPoll, variant, poll.Variants[variant])
 	return nil
 }
+
+func (db *DB) UpdatePollEnd(idPoll int, idAuthor string) error {
+	poll, err := db.GetPollByID(idPoll)
+	if err != nil {
+		return fmt.Errorf("ошибка получения опроса: %w", err)
+	}
+
+	if idAuthor != poll.AuthorID {
+		return fmt.Errorf("завершать голосование досрочно может только автор")
+	}
+
+	req := tarantool.NewUpdateRequest("polls").
+		Index("primary").
+		Key([]interface{}{idPoll}).
+		Operations(tarantool.NewOperations().Assign(5, time.Now().Format(time.RFC3339)))
+
+	resp, err := db.Conn.Do(req).Get()
+	if err != nil {
+		return fmt.Errorf("ошибка обновления опроса: %w", err)
+	}
+
+	if len(resp) == 0 {
+		return fmt.Errorf("не удалось обновить опрос: пустой ответ от Tarantool")
+	}
+
+	return nil
+}
+
+func (db *DB) DeletePoll(idPoll int, idAuthor string) error {
+	poll, err := db.GetPollByID(idPoll)
+	if err != nil {
+		return fmt.Errorf("ошибка получения опроса: %w", err)
+	}
+
+	if idAuthor != poll.AuthorID {
+		return fmt.Errorf("удалить голосование может только автор")
+	}
+
+	req := tarantool.NewDeleteRequest("polls").
+		Index("primary").
+		Key([]interface{}{idPoll})
+
+	resp, err := db.Conn.Do(req).Get()
+	if err != nil {
+		return fmt.Errorf("ошибка при выполнении DELETE: %w", err)
+	}
+
+	log.Printf("Ответ от Tarantool при удалении ID %d: %v", idPoll, resp)
+
+	if len(resp) == 0 {
+		return fmt.Errorf("опрос с ID %d не найден", idPoll)
+	}
+
+	return nil
+}
