@@ -43,6 +43,43 @@ docker-compose up
 - **tarantool** - сервис с базой данных Tarantool для хранения информации о голосованиях;
 - **bot** - сервис с ботом на Golang, обрабатывающий команды.
 
+Структура проекта:
+```
+.
+├── .dockerignore
+├── .env.example
+├── .gitignore
+├── README.md
+├── app                // Директория с приложением
+│   ├── Dockerfile
+│   ├── bot                 // Модуль для работы бота
+│   │   ├── client.go          // Работа с клиентом бота в Mattermost (инициализация)
+│   │   └── handle.go          // Обработка комманд
+│   ├── cmd                 // Модуль с иполняемым приложением
+│   │   └── main.go            // Точка входа приложения
+│   ├── commands            // Модуль с коммандами
+│   │   ├── hello.go         
+│   │   ├── help.go
+│   │   ├── ...
+│   │   └── pollVote.go
+│   ├── config               // Модуль с инициализацией конфига
+│   │   └── config.go
+│   ├── database             // Модуль для работы с базой данных
+│   │   └── tarantool.go       // Иниацилизация и функции для базы данных Tarantool
+│   ├── envs                // Модуль с переменными окружения
+│   │   └── .env.example       // Шаблон для .env
+│   ├── go.mod
+│   ├── go.sum
+│   ├── models               // Модуль с моделями (структурами)
+│   │   ├── poll.go
+│   │   ├── post.go
+│   │   └── user.go
+│   └── utils                // Модуль для утилит
+│       ├── convertToInt.go
+│       └── response.go
+└── docker-compose.yml
+```
+
 ## Возможные вопросы
 - Откуда взять *MATTERMOST_TOKEN*?
 
