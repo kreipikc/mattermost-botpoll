@@ -11,7 +11,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
   
   tarantool:
-    image: tarantool/tarantool:latest
+    image: tarantool/tarantool:3
     container_name: tarantool
     ports:
       - "3301:3301"
