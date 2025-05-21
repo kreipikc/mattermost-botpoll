@@ -19,7 +19,7 @@ git clone https://github.com/kreipikc/mattermost-botpoll.git
 ### 3. Запускаем все через `docker-compose`:
 ```
 cd <your_path>/mattermost-botpoll
-docker-compose up
+docker-compose up --build -d
 ```
 
 ### 4. Все готово! Теперь можно протестировать бота в Mattermost по ссылке - http://localhost:8065/
@@ -80,7 +80,15 @@ mattermost-botpoll
 └── docker-compose.yml
 ```
 
-## Возможные вопросы
-- Откуда взять *MATTERMOST_TOKEN*?
+## Возможные вопросы и ошибки
+### При первом запуске контейнер `bot` не запускается
+Пример вывода ошибки: 
+```
+2025-05-21 11:21:21 Ошибка получения пользователя: ошибка: 401, тело: {"id":"api.context.session_expired.app_error","message":"Invalid or expired session, please login again.","detailed_error":"","request_id":"39ff5448fbd38pr8npg5qsrejr","status_code":401}
+2025-05-21 14:21:21 exit status 1
+```
 
-Чтобы получить данный токен, вам нужно зарегистрироваться в мессенджере **Mattermost** и создать его в настройках профиля.
+Данная ошибка указывает на неудачную авторизацию бота в **Mattermost** чтобы её решить нужно:
+1. Проверить токен *MATTERMOST_TOKEN* в `/app/envs/.env`;
+2. Если он есть, то проверьте верность токена;
+3. Если токена нет, то нужно зарегистрироваться в мессенджере **Mattermost** и создать его в настройках профиля.
